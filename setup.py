@@ -19,11 +19,6 @@ classifiers = """\
 
 install_requires = [
     'selenium', 
-    'threading',
-    'SimpleHTTPServer',
-    'SocketServer',
-    'json',
-    'time',
     'pyzotero',
 ]
 

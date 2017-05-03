@@ -6,6 +6,18 @@ import json
 import time
 from pyzotero import zotero
 import sys
+import os
+
+datapath=os.path.dirname(os.path.realpath(__file__))+"/../data/"
+graphnumber=0
+while 1==1:
+  if os.path.isdir('./zgraph'+str(graphnumber)):
+    graphnumber+=1
+  else:
+    os.system("mkdir zgraph"+str(graphnumber))
+    os.system("cp "+datapath+"geckodriver zgraph"+str(graphnumber))
+    os.system("cp "+datapath+"index.html zgraph"+str(graphnumber))
+    break
 
 class networkobj:
   def __init__(self):
@@ -18,8 +30,8 @@ class networkobj:
   def add_link(self,source,target,weight):
     self.network["links"].append({"source":source,"target":target,"weight":weight})
     
-  def to_json(self,filename='graphFile.json'):
-    with open(filename,'w') as outfile:
+  def to_json(self,filename='graphFile.json',directory='./'):
+    with open(directory+filename,'w') as outfile:
       json.dump(self.network,outfile)
 
 
@@ -29,7 +41,7 @@ def launch_ff(url):
   driver = webdriver.Firefox()
   driver.get(url)
 
-if __name__=='__main__':
+def launch():
   userid = raw_input("Enter your Zotero user ID number: ")
   apikey = raw_input("Enter your Zotero api key: ")
   zot = zotero.Zotero(int(userid), 'user', str(apikey))
@@ -37,7 +49,7 @@ if __name__=='__main__':
   nw=networkobj()
   for i in range(5):
     nw.add_node(items[i]['data']['title'],1)
-  nw.to_json()
+  nw.to_json(directory="zgraph"+str(graphnumber)+"/")
   
   
   PORT=8000     
@@ -54,4 +66,5 @@ if __name__=='__main__':
     
   background = Thread(target=launch_ff,args=("http://127.0.0.1:"+str(PORT),))
   background.start()
+  os.chdir('zgraph'+str(graphnumber))
   httpd.serve_forever()
