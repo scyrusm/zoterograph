@@ -24,6 +24,27 @@ class networkobj:
     self.network={}
     self.network["nodes"]=[]
     self.network["links"]=[]
+    self.authorlookup={}
+    self.counter=0
+
+  def process_entry(self,zoteroentry):
+    name=zoteroentry['data']['title']
+    group=1
+    if {"name":name,"group":group} not in self.network["nodes"]:
+      self.add_node(name,group)
+      if u'creators' in zoteroentry['data'].keys():
+        for creatordict in zoteroentry['data']['creators']:
+          try:
+            creator=creatordict['lastName']+creatordict['firstName']
+          except:
+            creator=creatordict['name']
+          if creator not in self.authorlookup:
+            self.authorlookup[creator]=[self.counter]
+          else:
+            for copaper in self.authorlookup[creator]:
+              self.add_link(self.counter,copaper,1)
+            self.authorlookup[creator].append(self.counter)
+      self.counter+=1
     
   def add_node(self,name,group):
     self.network["nodes"].append({"name":name,"group":group})
@@ -32,8 +53,8 @@ class networkobj:
     
   def to_json(self,filename='graphFile.json',directory='./'):
     with open(directory+filename,'w') as outfile:
-      json.dump(self.network,outfile)
-
+      json.dump({"nodes":self.network["nodes"],"links":self.network["links"]},outfile,sort_keys=True,indent=4, separators=(',', ': '))
+   
 
 
 def launch_ff(url):
@@ -42,13 +63,31 @@ def launch_ff(url):
   driver.get(url)
 
 def launch():
-  userid = raw_input("Enter your Zotero user ID number: ")
-  apikey = raw_input("Enter your Zotero api key: ")
+  #userid = raw_input("Enter your Zotero user ID number: ")
+  userid="2327177"
+  #apikey = raw_input("Enter your Zotero api key: ")
+  apikey='kVwcp8SyoLNmnvcJ1r5G9v6X'
   zot = zotero.Zotero(int(userid), 'user', str(apikey))
-  items = zot.top(limit=5)
+  items=[]
+  bookmark=1
+  pagesize=100
+  while 1==1:
+    block=zot.items(limit=pagesize,start=bookmark)
+    if len(block)==0:
+      break
+    elif len(block)<pagesize:
+      items+=block
+      break
+    elif len(block)==pagesize:
+      items+=block
+      bookmark+=pagesize
+    else:
+      raise("Somehow, the Zotero API has returned unexpected output")
+#  items = zot.items(limit=5)
   nw=networkobj()
-  for i in range(5):
-    nw.add_node(items[i]['data']['title'],1)
+  for i in range(len(items)):
+    #nw.add_node(items[i]['data']['title'],1)
+    nw.process_entry(items[i])
   nw.to_json(directory="zgraph"+str(graphnumber)+"/")
   
   
@@ -68,3 +107,4 @@ def launch():
   background.start()
   os.chdir('zgraph'+str(graphnumber))
   httpd.serve_forever()
+
