@@ -18,7 +18,6 @@ classifiers = """\
 
 
 install_requires = [
-    'selenium', 
     'pyzotero',
 ]
 
