@@ -33,13 +33,8 @@ setup(
     license='BSD3',
     description='Package for visualization of zotero bibliography',
     keywords=['zotero'],
-  #  url='https://github.com/mirnylab/cooler',
+    url='https://github.com/scyrusm/zoterograph',
     packages=['zoterograph'],
     package_data={'zoterograph':['/data/*']},
     install_requires=install_requires
-#    entry_points={
-#        'console_scripts': [
-#            'cooler = cooler.cli:cli',
-#        ]
-#    }
 )
