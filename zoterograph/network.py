@@ -1,4 +1,5 @@
-from selenium import webdriver
+#from selenium import webdriver
+import webbrowser
 from threading import Thread
 import SimpleHTTPServer
 import SocketServer
@@ -57,16 +58,34 @@ class networkobj:
    
 
 
-def launch_ff(url):
+def launch_browser(url):
   time.sleep(0.5)
-  driver = webdriver.Firefox()
-  driver.get(url)
+  webbrowser.get(using='google-chrome').open(url,new=2)  
 
 def launch():
-  #userid = raw_input("Enter your Zotero user ID number: ")
-  userid="2327177"
-  #apikey = raw_input("Enter your Zotero api key: ")
-  apikey='kVwcp8SyoLNmnvcJ1r5G9v6X'
+  if os.path.isfile('.zoterographcreds'):
+    try:
+      with open('.zoterographcreds','r') as creds:
+        userid=creds.readline()
+        apikey=creds.readline()
+    except:
+      userid = raw_input("Enter your Zotero user ID number: ")
+      apikey = raw_input("Enter your Zotero api key: ")
+
+  else:
+    userid = raw_input("Enter your Zotero user ID number: ")
+    apikey = raw_input("Enter your Zotero api key: ")
+    while 1==1:
+      saveprompt = raw_input("Would you like to save these credentials? (N/y)")
+      if saveprompt in ["N","n",""]:
+        break 
+      elif saveprompt=="y":
+        with open(".zoterographcreds","w") as creds:
+          creds.write(userid+"\n")
+          creds.write(apikey)
+        break
+
+
   zot = zotero.Zotero(int(userid), 'user', str(apikey))
   items=[]
   bookmark=1
@@ -102,8 +121,7 @@ def launch():
       PORT+=1
   
   print("serving on port "+str(PORT))
-    
-  background = Thread(target=launch_ff,args=("http://127.0.0.1:"+str(PORT),))
+  background = Thread(target=launch_browser,args=("http://127.0.0.1:"+str(PORT),))
   background.start()
   os.chdir('zgraph'+str(graphnumber))
   httpd.serve_forever()
