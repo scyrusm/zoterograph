@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <script src="http://d3js.org/d3.v2.min.js?2.9.3"></script>
+
 <style>
 
 .link {
@@ -16,6 +17,19 @@ cursos:pointer;
 stroke:#fff;
 stroke-width:3px;
 fill:#555;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: 200px;
+    height: 0px;
+    padding: 0px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
 }
 
 </style>
@@ -37,14 +51,19 @@ var force = d3.layout.force()
 
 d3.json("graphFile.json", function(json) {
 //#  var nsquared=Math.pow)json.nods
-  var gravity=Math.floor(4000/json.nodes.length);
+  var fcharge=Math.floor(4000/json.nodes.length);
+
+  var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
 
   force
     .nodes(json.nodes)
     .links(json.links)
-    .gravity(.05)
+    .gravity(.03)
     .distance(100)
-    .charge(-gravity)
+    .charge(-fcharge)
     .size([width, height])
       .start();
 
@@ -61,11 +80,29 @@ d3.json("graphFile.json", function(json) {
       .call(force.drag);
 
   node.append("circle")
-      .attr("r","5");
+      .attr("r","5")
+      .on("mouseover", function(d) {
+            var textsize = d.name.length; 
+            var nlines=textsize/20+1;
+            var newheight=14*nlines;
+//        alert(d.name);
+            div.transition()
+                .duration(200)
+                .style("opacity", .9);
+            div	.html(d.name)
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+            })
+      .on("mouseout", function(d) {
+                  div.transition()
+                      .duration(500)
+                      .style("opacity", 0);
+        });
 
 //  node.append("text")
 //      .attr("dx", 12)
 //      .attr("dy", ".35em")
+//    .style("opacity", 0)
 //      .text(function(d) { return d.name });
 
   force.on("tick", function() {
